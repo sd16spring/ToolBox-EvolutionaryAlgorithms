@@ -179,7 +179,7 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
 def mate_text(parent1, parent2):
 	"""
 	Given two parent input strings, returns two child strings which are a 
-crossover of their parents. 
+    crossover of their parents. 
 	First, finds determines the indices on which to mate the parents strings.
 	Second, creates the child strings.
 	"""
@@ -216,9 +216,6 @@ def get_toolbox(text):
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    # NOTE: You can also pass function arguments as you define aliases, e.g.
-    #   toolbox.register("individual", Message, max_length=200)
-    #   toolbox.register("mutate", mutate_text, prob_sub=0.18)
 
     return toolbox
 
@@ -227,13 +224,11 @@ def evolve_string(text):
     """Use evolutionary algorithm (EA) to evolve 'text' string"""
 
     # Set random number generator initial seed so that results are repeatable.
-    # See: https://docs.python.org/2/library/random.html#random.seed
-    #      and http://xkcd.com/221
     random.seed(4)
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=100)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -243,12 +238,12 @@ def evolve_string(text):
     stats.register("max", numpy.max)
 
     # Run simple EA
-    # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
+
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
-                                   ngen=500,    # Num. of generations to run
+                                   ngen=100,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
