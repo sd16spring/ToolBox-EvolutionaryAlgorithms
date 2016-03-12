@@ -1,0 +1,1 @@
+I found that changing the popoulation size had a dramatic impact on the performance of the program. While a population size of 300 could easily resolve the desired string in as little as 15 generations, reducing the population to 200 required 20 generations, and reducing the popoulation further to 100 resulted in the incorrect string even after 500 generations. 
