@@ -20,21 +20,21 @@ from deap import base
 from deap import tools
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Global variables
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # Allowable characters include all uppercase letters and space
 # You can change these, just be consistent (e.g. in mutate operator)
 VALID_CHARS = string.ascii_uppercase + " "
 
 # Control whether all Messages are printed as they are evaluated
-VERBOSE = True
+VERBOSE = False
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Message object to use in evolutionary algorithm
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class FitnessMinimizeSingle(base.Fitness):
     """
@@ -88,12 +88,32 @@ class Message(list):
         return "".join(self)
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Genetic operators
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(a, b, memo={}):
+    """ returns the Levenshtein distance between a and b """
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    if (a, b) in memo:
+        return memo[a, b]
+
+    if a[0] == b[0]:
+        option1 = 0 + levenshtein_distance(a[1:], b[1:])
+    else:  # we need to change first char of a
+        option1 = 1 + levenshtein_distance(a[1:], b[1:])
+
+    option2 = 1 + levenshtein_distance(a, b[1:])
+    option3 = 1 + levenshtein_distance(a[1:], b)
+
+    dist = min(option1, option2, option3)
+
+    memo[a, b] = dist
+    return dist
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -121,20 +141,25 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        index = random.randint(0, len(message))
+        char = random.choice(VALID_CHARS)
+        message.insert(index, char)
 
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    if random.random() < prob_del:
+        index = random.randint(0, len(message)-1)
+        message.pop(index)
+
+    if random.random() < prob_sub:
+        index = random.randint(0, len(message)-1)
+        char = random.choice(VALID_CHARS)
+        message[index] = char
 
     return (message, )   # Length 1 tuple, required by DEAP
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 def get_toolbox(text):
     """Return DEAP Toolbox configured to evolve given 'text' string"""
@@ -191,9 +216,9 @@ def evolve_string(text):
     return pop, log
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Run if called from the command line
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
