@@ -61,7 +61,7 @@ class Message(list):
         """
         # Want to minimize a single objective: distance from the goal message
         self.fitness = FitnessMinimizeSingle()
-
+        random.seed(9)
         # Populate Message using starting_string, if given
         if starting_string:
             self.extend(list(starting_string))
@@ -92,8 +92,26 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+
+
+def levenshtein_distance(s1,s2, memo):
+
+    """ Computes the Levenshtein
+    distance between two input strings """
+    if len(s1) == 0:
+        return len(s2)
+    if len(s2) == 0:
+        return len(s1)
+    if (s1, s2) not in memo:
+        memo[(s1, s2)] = min([int(s1[0] != s2[0]) + 
+        levenshtein_distance(s1[1:],s2[1:], memo), 
+        1+levenshtein_distance(s1[1:],s2,memo), 
+        1+levenshtein_distance(s1,s2[1:], memo)])
+        return memo[(s1, s2)]
+        
+    else:
+        return memo[(s1, s2)]
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,7 +119,8 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    memo = {}
+    distance = levenshtein_distance(message.get_text(), goal_text, memo)
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
@@ -122,12 +141,18 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
 
     if random.random() < prob_ins:
         # TODO: Implement insertion-type mutation
-        pass
+        randchar = random.choice(list(VALID_CHARS))
+        index_ins = random.randint(0, len(message))
+        message.insert(index_ins, randchar)
 
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    if random.random() < prob_del:
+        index_del = random.randint(0, len(message)-1)
+        del message[index_del]
+
+    if random.random() < prob_sub:
+        randchar = random.choice(list(VALID_CHARS))
+        index_sub = random.randint(0, len(message)-1)
+        message[index_sub] = randchar
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -154,8 +179,8 @@ def get_toolbox(text):
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     # NOTE: You can also pass function arguments as you define aliases, e.g.
-    #   toolbox.register("individual", Message, max_length=200)
-    #   toolbox.register("mutate", mutate_text, prob_sub=0.18)
+    # toolbox.register("individual", Message, max_length=200)
+    # toolbox.register("mutate", mutate_text, prob_sub=0.18)
 
     return toolbox
 
@@ -216,3 +241,4 @@ if __name__ == "__main__":
 
     # Run evolutionary algorithm
     pop, log = evolve_string(goal)
+
