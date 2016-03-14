@@ -1,0 +1,5 @@
+Modification 1: 
+	DEAP's eaMuPlusLambda algorithm, with a value of 300 for both mu and lambda, seemed to marginally improve the number of generations taken to converge on the target string. Increasing these values had the same type of effect. 
+
+Modification 2:
+	Increasing the probabilities of mutation dramatically increased the speed of convergence, as one might expect. With probabilities of 50% for each of the three types of mutations, it took just over 100 generations.
