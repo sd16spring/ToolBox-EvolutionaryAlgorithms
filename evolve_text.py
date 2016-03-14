@@ -92,8 +92,52 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(s1,s2,known={}):
+    """
+    Returns the Levenshtein distance between two strings, calculated
+    recursively.
+    
+    >>> levenshtein_distance("","apple")
+    5
+    >>> levenshtein_distance("","")
+    0
+    >>> levenshtein_distance("apple","apple")
+    0
+    >>> levenshtein_distance("apple","opple")
+    1
+    >>> levenshtein_distance("mitten","smitten")
+    1
+    """
+    if (s1,s2) in known:
+        return known[(s1,s2)]
+    #Base case: empty strings
+    #If a string becomes empty, the minimum number of modifications
+    #is to add all the characters of the other. Since one addition
+    #is one change, the cost is the length of the other string
+    if len(s1) == 0:
+        return len(s2)
+    elif len(s2) == 0:
+        return len(s1)
+    
+    #Test if last characters of strings match
+    #If they do match, the cost to make the last characters match is 0
+    #Otherwise it's 1
+    if s1[-1] == s2[-1]:
+        cost = 0
+    else:
+        cost = 1
+    
+    
+    #Calculate the cost for each string that is a product of
+    #Removing a character from s1
+    #Adding a character from s2 (same as inserting a character ro s1)
+    #Or changing the two last characters to be the same
+    known[(s1,s2)] = min(
+              levenshtein_distance(s1[:-1],s2,     known)+1,
+              levenshtein_distance(s1,     s2[:-1],known)+1,
+              levenshtein_distance(s1[:-1],s2[:-1],known)+cost
+              )
+    return known[(s1,s2)]
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -121,13 +165,28 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        index = random.randint(0,len(message)-1)
+        new_char = random.choice(VALID_CHARS)
+        message = message[:index] + [new_char] + message[index:]
 
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    if random.random() < prob_del:
+        index = random.randint(0,len(message)-1)
+        if index == len(message)-1:
+            message = message[:-1]
+        else:
+            message = message[:index] + message[index+1:]
+
+    if random.random() < prob_sub:
+        index = random.randint(0,len(message)-1)
+        new_char = random.choice(VALID_CHARS)
+
+        if index == len(message)-1:
+            message = message[:-1] + [new_char]
+        else:
+            message = message[:index] + [new_char] + message[index+1:]
+
+    message = Message(message)
+
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -184,7 +243,7 @@ def evolve_string(text):
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
                                    cxpb=0.5,    # Prob. of crossover (mating)
-                                   mutpb=0.2,   # Probability of mutation
+                                   mutpb=0.1,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
                                    stats=stats)
 
