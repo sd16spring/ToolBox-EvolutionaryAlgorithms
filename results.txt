@@ -1,0 +1,3 @@
+Inreasing the crossover probability (cxpb) actually significantly increased the number of generations needed for the message to converge. Changing cxpb to 0.7 caused the message to not converge in 500 generations, unlike with cxpb of 0.5, where the message consistently converged within 500. The same was true for decreasing cxpb: a cxpb of 0.3 often caused the message not to converge within 500 generations.
+
+Changing the probability of mutation resulted in similar changes: both higher and lower values of mutpb increased the time it took for the message to converge.
