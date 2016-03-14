@@ -92,8 +92,24 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(a, b, memory):
+    if a == b:
+        return 0
+    if len(a) == 0:
+        return len(b)
+    if len(b) == 0:
+        return len(a)
+    if memory.has_key((a,b)):
+        return memory[(a,b)]
+
+    x = levenshtein_distance(a[1:], b, memory) + 1
+    y = levenshtein_distance(a, b[1:], memory) + 1
+    #z = levenshtein_distance(a[1:], b[1:], memory) + abs(ord(a[0])-ord(b[0]))
+    z = levenshtein_distance(a[1:], b[1:], memory) + (a[0]!=b[0])
+
+    memory[(a,b)] = min(x,y,z)
+    memory[(b,a)] = memory[(a,b)]
+    return memory[(b,a)]
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,13 +117,14 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    mem = dict()
+    distance = levenshtein_distance(message.get_text(), goal_text, mem)
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
 
 
-def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
+def mutate_text(message, prob_ins=0.1, prob_del=0.1, prob_sub=0.1):
     """
     Given a Message and independent probabilities for each mutation type,
     return a length 1 tuple containing the mutated Message.
@@ -119,15 +136,12 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
-
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+        message.insert(int(random.random()*(len(message)+1)),random.choice(VALID_CHARS))
+    if random.random() < prob_del:
+        message.remove(message[int(random.random()*len(message))])
+    if random.random() < prob_sub:
+        message[int(random.random()*len(message))] = random.choice(VALID_CHARS)
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -185,7 +199,7 @@ def evolve_string(text):
                                    toolbox,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
-                                   ngen=500,    # Num. of generations to run
+                                   ngen=400,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
