@@ -92,8 +92,23 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(s1, s2, memo=None):
+    if memo is None: 
+        memo = {}
+    if len(s1) == 0:
+        return len(s2)
+    if len(s2) == 0:
+        return len(s1)
+    if (len(s1), len(s2)) in memo:
+        return memo[(len(s1), len(s2))]
+    delta = 1 if s1[-1] != s2[-1] else 0
+    diag = levenshtein_distance(s1[:-1], s2[:-1], memo) + delta
+    vert = levenshtein_distance(s1[:-1], s2, memo) + 1
+    horz = levenshtein_distance(s1, s2[:-1], memo) + 1
+    ans = min(diag, vert, horz)
+    memo[(len(s1), len(s2))] = ans 
+    return ans
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -121,9 +136,12 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
+        message.insert(random.randrange(len(message)), random.choice(VALID_CHARS))  
+    elif random.random() < prob_del:
+        message.pop(random.randrange(len(message)))
+    elif random.random() < prob_sub:
+        index = random.randrange(len(message))
+        message[index] = random.choice(VALID_CHARS)
     # TODO: Also implement deletion and substitution mutations
     # HINT: Message objects inherit from list, so they also inherit
     #       useful list methods
@@ -181,8 +199,10 @@ def evolve_string(text):
 
     # Run simple EA
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
-    pop, log = algorithms.eaSimple(pop,
+    pop, log = algorithms.eaMuPlusLambda(pop,
                                    toolbox,
+                                   mu=300,
+                                   lambda_=300,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
