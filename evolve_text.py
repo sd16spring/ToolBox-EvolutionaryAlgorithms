@@ -142,10 +142,6 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     elif random.random() < prob_sub:
         index = random.randrange(len(message))
         message[index] = random.choice(VALID_CHARS)
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
 
     return (message, )   # Length 1 tuple, required by DEAP
 
