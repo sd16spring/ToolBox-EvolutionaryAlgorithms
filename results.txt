@@ -1,0 +1,11 @@
+When increasing the probably of mutation, the program had an easier time reaching a lower distance 
+from the end goal. However, higher probabilities of mutation also increased the probability of 
+the program getting stuck at a distance of 1 since only one trait needed to change and changing 
+more than one trait resulted in a further distance. In general, increasing the probability of
+deletions and substitution did not help the program to reach the end goal but increasing the
+probability of insertion tended to increase efficiency. Overall, there is a balance, but certain
+mutations tend to have a larger impact than others.
+
+Increasing the probability of mating tends to slow down the program's process of achieving the
+end goal while decreasing it appears to increase the success rate of the program until it reaches
+a low distance.
