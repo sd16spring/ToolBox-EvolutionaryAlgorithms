@@ -92,8 +92,30 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(a,b,memo):
+    if (a,b) in memo:
+        return memo[(a,b)]
+
+    if a == "":
+        return len(b)
+    if b == "":
+        return len(a)
+    # Strategy 1: Change the first character to match
+    if a[0] == b[0]:
+        # First character already matches, no extra distance
+        option1 = levenshtein_distance(a[1:], b[1:],memo)
+    else:
+        # First character is different, distance of 1 to change it
+        option1 = 1 + levenshtein_distance(a[1:], b[1:], memo)
+    # Strategy 2: Insert b[0] as the first character of a
+    option2 = 1 + levenshtein_distance(a, b[1:], memo)
+    # Strategy 3: Delete the first character of a
+    option3 = 1 + levenshtein_distance(a[1:], b, memo)
+
+    minimum = min(option1, option2, option3)
+    memo[(a,b)] = minimum
+    return minimum
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,13 +123,13 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    distance = levenshtein_distance(message.get_text(), goal_text, dict())
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
 
 
-def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
+def mutate_text(message, prob_ins=0.26, prob_del=0.05, prob_sub=0.05):
     """
     Given a Message and independent probabilities for each mutation type,
     return a length 1 tuple containing the mutated Message.
@@ -119,17 +141,31 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
+    # print message
+    # print VALID_CHARS
+    # print string.letters
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        rand_pos = random.randint(0, len(message)-1)
+        rand_char = random.choice(VALID_CHARS)
+        message.insert(rand_pos,rand_char)
 
-    # TODO: Also implement deletion and substitution mutations
+    if random.random() < prob_del:
+        rand_pos = random.randint(0,len(message)-1)
+        del message[rand_pos]
+
+    if random.random() < prob_sub:
+        rand_pos = random.randint(0, len(message)-1)
+        rand_char = random.choice(VALID_CHARS)
+        message[rand_pos] = rand_char
+
+    # print message
     # HINT: Message objects inherit from list, so they also inherit
     #       useful list methods
     # HINT: You probably want to use the VALID_CHARS global variable
-
+    # print (message, )
     return (message, )   # Length 1 tuple, required by DEAP
+    # return(Message(message))
 
 
 #-----------------------------------------------------------------------------
@@ -154,8 +190,8 @@ def get_toolbox(text):
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     # NOTE: You can also pass function arguments as you define aliases, e.g.
-    #   toolbox.register("individual", Message, max_length=200)
-    #   toolbox.register("mutate", mutate_text, prob_sub=0.18)
+    # toolbox.register("individual", Message, max_length=200)
+    # toolbox.register("mutate", mutate_text, prob_sub=0.18)
 
     return toolbox
 
@@ -170,7 +206,7 @@ def evolve_string(text):
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=350)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -183,7 +219,7 @@ def evolve_string(text):
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
-                                   cxpb=0.5,    # Prob. of crossover (mating)
+                                   cxpb=0.35,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
                                    stats=stats)
