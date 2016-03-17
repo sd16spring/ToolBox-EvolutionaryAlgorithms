@@ -11,6 +11,14 @@ Full instructions are at:
 https://sites.google.com/site/sd15spring/home/project-toolbox/evolutionary-algorithms
 """
 
+
+"""
+Completed by Kevin Zhang
+
+Software Design Spring 2016
+
+"""
+
 import random
 import string
 
@@ -92,8 +100,32 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+
+dicts = {}
+
+def levenshtein_distance(a, b):
+    """
+    The levenshtein distance between two strings, using memoization
+    """
+
+    if (a,b) in dicts:
+        return dicts[a,b] 
+    else:   
+        if len(a)==0:
+            return len(b)
+        elif len(b)==0:
+            return len(a)
+        elif a[0] == b[0]:
+            option1 = levenshtein_distance(a[1:],b[1:])
+        else:
+            option1 = 1 + levenshtein_distance(a[1:],b[1:])
+        option2 = 1 + levenshtein_distance(a[1:],b)
+        option3 = 1 + levenshtein_distance(a,b[1:])
+
+        minimum = min(option1,option2,option3)
+
+        dicts[a,b] = minimum
+        return minimum
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -120,17 +152,31 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
                         (legal) character
     """
 
-    if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    if random.random() < prob_ins:    #inserting a character
+        spot = random.randint(0, len(message)-1)
+        message.insert(spot, random.choice(VALID_CHARS))
+    if random.random() < prob_del:    #deleting a character
+        spot = random.randint(0, len(message)-1)
+        message.remove(message[spot])
+    if random.random() < prob_sub:    #subsituting a character
+        spot = random.randint(0, len(message)-1)
+        message[spot] = random.choice(VALID_CHARS)    
 
     return (message, )   # Length 1 tuple, required by DEAP
 
+
+def crossover(parent1, parent2):
+    """
+    Uses a genetic crossover to mate two parents and create two offspring
+    Parent 1 and 2 are Message objects, and the returned tuple will also be Messages
+    """
+    cross1 = random.randint(0, min(len(parent1), len(parent2))-2)  #creating the first crossing point
+    cross2 = random.randint(cross1+1, min(len(parent1), len(parent2))-1)  #creating the second crossing point
+                                                                
+    offspring1 = Message(parent1[0:cross1] + parent2[cross1:cross2] + parent1[cross2:])
+    offspring2 = Message(parent2[0:cross1] + parent1[cross1:cross2] + parent2[cross2:])
+
+    return offspring1, offspring2  #length 2 tuple, which matches thet output of the original method used
 
 #-----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
@@ -149,7 +195,7 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
-    toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register("mate", crossover)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -170,7 +216,7 @@ def evolve_string(text):
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=1000)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
