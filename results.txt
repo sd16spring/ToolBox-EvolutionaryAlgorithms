@@ -1,0 +1,17 @@
+﻿Evolutionary Toolbox
+
+Changing population size
+
+Population size has a big effect on the results in terms of its progression. Having a larger population size means having a larger starting pool and thus more chances of getting the target from the beginning. More Messages means more possible mutations and crossovers, thus creating a better chance for obtaining the goal. A smaller populations means that within the given number of generations there are less Messages to attempt to get the goal. This was confirmed with an experiment of using a starting population of 1000 and of 10. The 1000 population got the goal by the 150th generation, where the 10 population was still a distance of 13 away from the goal by the 500 generation. Population is very important when trying to evolve, as evidently larger populations evolve faster.
+
+Changing generation size
+
+Generation size is quite similar to population in that it has a big effect on the progress of the goal. A larger generation window means more time to evolve towards the goal, and a smaller one means less time. A population with a longer generation window will most likely evolve and develop farther than a similar population with a shorter time window. This was confirmed with a population of 100 given a generation of 10 and 1000. The 10 generation population only made it to a distance of 12 away from the goal, whereas the 1000 generation population managed to get down to 2. The inability to reach the goal also shows that population still plays a factor in the generation perspective and that the two do not fulfill the same niche in affecting evolution.
+
+Changing the crossing over probability
+
+It appears that changing the crossing over probability does not severely affect the evolution process. This might seem counter-intuitive, as mating would allow for better chances to find the goal. In all honesty, I would agree with that statement. But apparently my algorithm says otherwise. When testing a probability of both .1 and .9, the results were about the same. A 0.1 probability for crossing over got the population to the goal within a distance of 2, and a 0.9 probability for crossing over got the population to the goal within a distance of 3. Perhaps given the size of the population which was 300 or the number of generations was which 500, as long as the probability wasn't 0 or 1.0 it might be about the same given the size.
+
+Changing the mutation probability
+
+Changing the mutation probability seems to require a fine balance. Mutations are needed for the population to evolve and find individuals that are closer to the goal, but too many might be damaging to the evolution process and prohibit the ability of the population to make it to the goal in a smooth fashion. This was more or less proven with a mutation probability of .01 and of .9. Both populations ended up about a distance of 3-5 from the goal. However, a probability of .05 or .3 got the population to a distance of 1. It is apparent that mutation must then be in the middle ground, with not too much but not too little.

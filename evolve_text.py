@@ -108,7 +108,7 @@ def levenshtein_distance(a, b):
     The levenshtein distance between two strings, using memoization
     """
 
-    if (a,b) in dicts.keys():
+    if (a,b) in dicts:
         return dicts[a,b] 
     else:   
         if len(a)==0:
@@ -168,14 +168,15 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
 def crossover(parent1, parent2):
     """
     Uses a genetic crossover to mate two parents and create two offspring
+    Parent 1 and 2 are Message objects, and the returned tuple will also be Messages
     """
-    cross1 = random.randint(0, min(len(parent1), len(parent2)/2))  #creating the first crossing point
-    cross2 = random.randint(cross1+1, min(len(parent1), len(parent2)))  #creating the second crossing point
-    temp = parent1                                                            #making a temp variable for easier crossing
-    parent1 = parent1[0:cross1] + parent2[cross1:cross2] + parent1[cross2:]
-    parent2 = parent2[0:cross1] + temp[cross1:cross2] + parent2[cross2:]
+    cross1 = random.randint(0, min(len(parent1), len(parent2))-2)  #creating the first crossing point
+    cross2 = random.randint(cross1+1, min(len(parent1), len(parent2))-1)  #creating the second crossing point
+                                                                
+    offspring1 = Message(parent1[0:cross1] + parent2[cross1:cross2] + parent1[cross2:])
+    offspring2 = Message(parent2[0:cross1] + parent1[cross1:cross2] + parent2[cross2:])
 
-    return parent1, parent2  #length 2 tuple, which matches thet output of the original method used
+    return offspring1, offspring2  #length 2 tuple, which matches thet output of the original method used
 
 #-----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
@@ -215,7 +216,7 @@ def evolve_string(text):
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=1000)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
