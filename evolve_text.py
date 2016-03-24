@@ -92,8 +92,57 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+#memoization storage
+lev_memo = {}
+def levenshtein_distance(s1,s2):
+    """
+    Calculates the levenshtein distance using dynamic programming
+    """
+    #tuple for memoization key
+    key = tuple(sorted((s1,s2)))
+    #check memo
+    if key in lev_memo.keys():
+        return lev_memo[key]
+    #creates a row of the string index at the top; these serve as the initial score for the string, as you move away 
+    #from the beginning of string 2
+    grid = [list(range(len(s2)+1))]
+    #create a row for every index in string 1
+    for c in s1:
+        grid.append([0]*(len(s2)+1))
+    #creates a col of the string index on the left; these serve as the initial score for the string as youmove away
+    #from the beginning of string 1
+    for i in range(len(s1)+1):
+        grid[i][0]=i
+    #print_grid(grid)
+    #Calculate the score for each square in the grid by adding the smallest score before it + cost
+    for i in range(1,len(s1)+1):
+        for j in range(1,len(s2)+1):
+            #if the letters are the same, you don't have to substitute, so cost = 0
+            cost = abs(ord(s1[i-1])-ord(s2[j-1])) if s1[i-1]!=s2[j-1] else 0
+            #cost+smallest score out of the three previous possible positions
+            grid[i][j] = min(grid[i-1][j-1]+cost, grid[i][j-1]+1,grid[i-1][j]+1)
+    #get score, the value at the last index of both strings
+    score = grid[-1][-1]
+    #print_grid(grid)
+    #store in memo
+    lev_memo[key]=score
+    #return
+    return score
+def print_grid(grid):
+    for row in grid:
+        for col in row:
+            print str(col),
+        print 
+
+def two_point_crossover(parent1, parent2):
+    """
+    Returns the two point crossover of two strings
+    """
+    length = min(len(parent1), len(parent2))
+    points = sorted([random.randrange(length), random.randrange(length)])
+    str1 = parent1[:points[0]]+parent2[points[0]:points[1]]+parent1[points[1]:]
+    str2 = parent2[:points[0]]+parent1[points[0]:points[1]]+parent2[points[1]:]
+    return (Message(starting_string=''.join(str1)), Message(starting_string=''.join(str2)))
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -121,13 +170,14 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+        index = random.randrange(len(message))
+        message.insert(index, VALID_CHARS[random.randrange(len(VALID_CHARS))])
+    if random.random() < prob_del:
+        index = random.randrange(len(message))
+        del message[index]
+    if random.random() < prob_sub:
+        index = random.randrange(len(message))
+        message[index] = VALID_CHARS[random.randrange(len(VALID_CHARS))]
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -149,7 +199,7 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
-    toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register("mate", two_point_crossover)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -160,7 +210,7 @@ def get_toolbox(text):
     return toolbox
 
 
-def evolve_string(text):
+def evolve_string(text, prob_mate = 0.5, num_gen = 500, prob_mutate = 0.2, population = 300):
     """Use evolutionary algorithm (EA) to evolve 'text' string"""
 
     # Set random number generator initial seed so that results are repeatable.
@@ -170,7 +220,7 @@ def evolve_string(text):
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=population)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -183,9 +233,9 @@ def evolve_string(text):
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
-                                   cxpb=0.5,    # Prob. of crossover (mating)
-                                   mutpb=0.2,   # Probability of mutation
-                                   ngen=500,    # Num. of generations to run
+                                   cxpb=prob_mate,    # Prob. of crossover (mating)
+                                   mutpb=prob_mutate,   # Probability of mutation
+                                   ngen=num_gen,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
@@ -215,4 +265,4 @@ if __name__ == "__main__":
             raise ValueError(msg.format(goal=goal, char=char, val=VALID_CHARS))
 
     # Run evolutionary algorithm
-    pop, log = evolve_string(goal)
+    pop, log = evolve_string(goal, num_gen=len(goal)*60,prob_mutate=.4)
