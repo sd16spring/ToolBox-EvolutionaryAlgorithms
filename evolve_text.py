@@ -19,7 +19,6 @@ from deap import algorithms
 from deap import base
 from deap import tools
 
-
 #-----------------------------------------------------------------------------
 # Global variables
 #-----------------------------------------------------------------------------
@@ -31,6 +30,7 @@ VALID_CHARS = string.ascii_uppercase + " "
 # Control whether all Messages are printed as they are evaluated
 VERBOSE = True
 
+cache = dict()
 
 #-----------------------------------------------------------------------------
 # Message object to use in evolutionary algorithm
@@ -92,8 +92,39 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein(a, b, cache):
+    """ Returns the levenshtein distance between a and b.
+        >>> cache = {}
+        >>> levenshtein('apple', '', cache)
+        5
+        >>> levenshtein('', 'software', cache)
+        8
+        >>> levenshtein('cat', 'cat', cache)
+        0
+        >>> levenshtein('beta', 'pedal', cache)
+        3
+        >>> levenshtein('battle', 'bet', cache)
+        4
+    """
+
+    if (a, b) in cache:
+        return cache[(a, b)]
+    if a == b:
+        return 0
+    elif not a or not b:
+        return len(a) or len(b)
+    elif a[0] == b[0]:
+        option1 = levenshtein(a[1:], b[1:], cache)
+    else:
+        option1 = 1 + levenshtein(a[1:], b[1:], cache) # change 1st char to match
+
+    option2 = 1 + levenshtein(a, b[1:], cache) # insert b[0] as first character of a
+    option3 = 1 + levenshtein(a[1:], b, cache) # remove first character of a
+
+    minimum = min(option1, option2, option3)
+    cache[(a, b)] = minimum
+    return minimum
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,7 +132,7 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    distance = levenshtein(message.get_text(), goal_text, cache)
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
@@ -120,9 +151,16 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
                         (legal) character
     """
 
+    index = random.choice(range(len(message) - 1))
+
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        message.insert(index, random.choice(VALID_CHARS))
+    if random.random() < prob_del:
+        del message[index]
+    if random.random() < prob_sub:
+        del message[index]
+        message.insert(index, random.choice(VALID_CHARS))
+
 
     # TODO: Also implement deletion and substitution mutations
     # HINT: Message objects inherit from list, so they also inherit
@@ -170,7 +208,8 @@ def evolve_string(text):
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    # pop = toolbox.population(n=300)
+    pop = toolbox.population(n=250)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
