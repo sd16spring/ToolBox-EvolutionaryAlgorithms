@@ -9,6 +9,7 @@ Usage:
 
 Full instructions are at:
 https://sites.google.com/site/sd15spring/home/project-toolbox/evolutionary-algorithms
+All non-starter code by Rebecca Gettys except where otherwise noted
 """
 
 import random
@@ -91,9 +92,24 @@ class Message(list):
 #-----------------------------------------------------------------------------
 # Genetic operators
 #-----------------------------------------------------------------------------
+memo = {}
+def levenshtein_distance(a,b):
+    """ from: https://programmingpraxis.com/2014/09/12/levenshtein-distance/
+    I had memoized fibonacci instead - my memoized levenshtein doesn't work, not sure why
+    """
+    if a == b:
+        return 0
+    if a == "":
+        return len(b)
+    if b == "":
+        return len(a)
+    if (a, b) not in memo:
+        l1 = levenshtein_distance(a[1:], b) + 1
+        l2 = levenshtein_distance(a, b[1:]) + 1
+        l3 = levenshtein_distance(a[1:], b[1:]) + (a[0] != b[0])
+        memo[(a,b)] = min(l1, l2, l3)
+    return memo[(a,b)]
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -119,17 +135,30 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
-
+    loc=random.randint(0, len(message))
+    new_char = random.choice(VALID_CHARS)
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
+        # done insertion-type mutation
+        message.insert(loc,new_char)
+    elif random.random() < prob_del:
+        message = message[:loc] + message[loc+1:]
+    elif random.random() < prob_sub:
+        message = message[:loc] + new_char + message[loc+1:]
     # HINT: Message objects inherit from list, so they also inherit
     #       useful list methods
     # HINT: You probably want to use the VALID_CHARS global variable
 
     return (message, )   # Length 1 tuple, required by DEAP
+
+def my_crossover_func(parent1, parent2):
+    "replaces the original 2 point crossover function"
+    point1 = random.randint (0,len(parent1))
+    point2 = random.randint(0,len(parent2))
+    new_p1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
+    new_p2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
+    return (new_p1, new_p2)
+
+
 
 
 #-----------------------------------------------------------------------------
@@ -150,6 +179,7 @@ def get_toolbox(text):
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
     toolbox.register("mate", tools.cxTwoPoint)
+    #toolbox.register("mate", my_crossover_func)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -216,3 +246,4 @@ if __name__ == "__main__":
 
     # Run evolutionary algorithm
     pop, log = evolve_string(goal)
+
