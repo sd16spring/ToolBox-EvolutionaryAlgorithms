@@ -1,14 +1,14 @@
 """
 Evolutionary algorithm, attempts to evolve a given message string.
-
 Uses the DEAP (Distributed Evolutionary Algorithms in Python) framework,
 http://deap.readthedocs.org
-
 Usage:
     python evolve_text.py [goal_message]
 
-Full instructions are at:
-https://sites.google.com/site/sd15spring/home/project-toolbox/evolutionary-algorithms
+@author: March Saper
+
+Written for Software Design 2016 - Olin College of Engineering
+
 """
 
 import random
@@ -27,6 +27,9 @@ from deap import tools
 # Allowable characters include all uppercase letters and space
 # You can change these, just be consistent (e.g. in mutate operator)
 VALID_CHARS = string.ascii_uppercase + " "
+
+# Dictionary to memoize for levenstein distance, thus significantly decreasing run time
+LEV_DICT = {}
 
 # Control whether all Messages are printed as they are evaluated
 VERBOSE = True
@@ -78,7 +81,6 @@ class Message(list):
         # Note: __repr__ (if it exists) is called by __str__. It should provide
         #       the most unambiguous representation of the object possible, and
         #       ideally eval(repr(obj)) == obj
-        # See also: http://stackoverflow.com/questions/1436703
         template = '{cls}({val!r})'
         return template.format(cls=self.__class__.__name__,     # "Message"
                                val=self.get_text())
@@ -92,8 +94,46 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def lev(a, b):
+    """ Returns the Levenshtein distance between strings a and b
+
+        >>> lev("apple", "opple")
+        1
+        >>> lev("kitten", "smitten")
+        2
+        >>> lev("software", "software")
+        0
+    """
+
+    # Base cases: one of the strings is empty
+    if (a, b) in LEV_DICT:
+        return LEV_DICT[(a,b)]
+
+    if a == "":
+        return len(b)
+    if b == "":
+        return len(a)
+
+    # Strategy 1: Change the first character to match
+    if a[0] == b[0]:
+        # First character already matches, no extra distance
+        option1 = lev(a[1:], b[1:])
+    else:
+        # First character is different, distance of 1 to change it
+        option1 = 1 + lev(a[1:], b[1:])
+
+    # Strategy 2: Insert b[0] as the first character of a
+    option2 = 1 + lev(a, b[1:])
+
+    # Strategy 3: Delete the first character of a
+    option3 = 1 + lev(a[1:], b)
+
+    distance = min(option1, option2, option3)
+
+    LEV_DICT[(a,b)] = distance
+
+    return distance
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,7 +141,7 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    distance = lev(message.get_text(), goal_text)
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
@@ -121,15 +161,37 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        insert_i = random.randint(0, len(message)-1)
+        insert_char = random.choice(VALID_CHARS)
+        message.insert(insert_i, insert_char)
 
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    if random.random() < prob_del:
+    	delete_i = random.randint(0, len(message)-1)
+    	del message[delete_i]
 
-    return (message, )   # Length 1 tuple, required by DEAP
+    if random.random() < prob_sub:
+    	sub_i = random.randint(0, len(message)-1)
+    	sub_char = random.choice(VALID_CHARS)
+    	message[sub_i] = sub_char
+
+    return (Message(message), ) # Length 1 tuple, required by DEAP
+    
+def mate_text(parent1, parent2):
+	"""
+	Given two parent input strings, returns two child strings which are a 
+    crossover of their parents. 
+	First, finds determines the indices on which to mate the parents strings.
+	Second, creates the child strings.
+	"""
+
+	mutate_point1 = random.randint(0,len(parent1)-1)
+	mutate_point2 = random.randint(mutate_point1 + 1, len(parent1))
+
+	child1 = parent1[:mutate_point1] + parent2[mutate_point1:mutate_point2] + parent1[mutate_point2:]
+	child2 = parent2[:mutate_point1] + parent1[mutate_point1:mutate_point2] + parent2[mutate_point2:]
+
+	return (child1, child2)
+
 
 
 #-----------------------------------------------------------------------------
@@ -149,13 +211,11 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
+    #toolbox.register("mate", mate_text)
     toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    # NOTE: You can also pass function arguments as you define aliases, e.g.
-    #   toolbox.register("individual", Message, max_length=200)
-    #   toolbox.register("mutate", mutate_text, prob_sub=0.18)
 
     return toolbox
 
@@ -164,13 +224,11 @@ def evolve_string(text):
     """Use evolutionary algorithm (EA) to evolve 'text' string"""
 
     # Set random number generator initial seed so that results are repeatable.
-    # See: https://docs.python.org/2/library/random.html#random.seed
-    #      and http://xkcd.com/221
     random.seed(4)
 
     # Get configured toolbox and create a population of random Messages
     toolbox = get_toolbox(text)
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=100)
 
     # Collect statistics as the EA runs
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -180,12 +238,12 @@ def evolve_string(text):
     stats.register("max", numpy.max)
 
     # Run simple EA
-    # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
+
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
-                                   ngen=500,    # Num. of generations to run
+                                   ngen=100,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
@@ -202,7 +260,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
-        goal = "SKYNET IS NOW ONLINE"
+        goal = "HEFFALUMP"
     else:
         goal = " ".join(sys.argv[1:])
 

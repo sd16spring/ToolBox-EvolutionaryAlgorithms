@@ -1,0 +1,5 @@
+Evolutionary Algorithms Results
+
+The first parameter that I changed was the population size. With a population size of 300, the first generation to reach a Levenshtein distance of 0 was generation 62. With a population size of 3000, the first generation to reach a Levenshtein distance of 0 was generation 63. Overall, not a very big change.
+
+The second parameter I changed was the probabilities of mutation. With the probabilities of insertion, deletion, and substitution at their standard values, the first generation to reach a Levenstein distance of 0 was generation 62, as as above. With all probabilites at 0.5, a Levenstein distance of 0 was not reached. (Within 100 generation, the amount of generations run for all tests.)
