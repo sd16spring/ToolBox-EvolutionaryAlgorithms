@@ -1,0 +1,4 @@
+﻿Design decision: The phrase is implemented as a list instead of a string because a list is mutable which makes it easier to add, delete, and replace characters.
+
+
+I tried changing the probability that there would be random insertions, mutations, and deletions. When I changed the probability for all of those parameters to 10%, the program did exactly the same thing, but it got to the phrase “SKYNET IS NOW ONLIN” more quickly then with all of the probabilities set at 5%. When I changed the probability to 90%, the program got to the phrase “SKYNET IS NOW ONLIN”  even more quickly, but the length jumped around for a while. It still didn't reach the final phrase. When I changed the probability of deletion to 5%, but kept the probability of insertion and substitution at 90%, the program was able to find the desired phrase “SKYNET IS NOW ONLINE”. 

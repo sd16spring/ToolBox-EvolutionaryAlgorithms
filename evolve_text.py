@@ -92,8 +92,43 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(a, b, d):
+    """ returns the Levenshtein distance between a and b - requires two strings and a dictionary
+
+        >>> levenshtein_distance("apple", "", {})
+        5
+        >>> levenshtein_distance("battle", "bet", {})
+        4
+        >>> levenshtein_distance("beta", "pedal", {})
+        3
+        >>> levenshtein_distance("kitten", "smitten", {})
+        2
+    """
+    if a == "":
+        return len(b)
+    if b == "":
+        return len(a)
+
+    if (a, b) in d:
+        return d[(a,b)]
+
+    # Strategy 1: Change the first character to match
+    if a[0] == b[0]:
+        # First characters already match, so no extra distance
+        option1 = levenshtein_distance(a[1:], b[1:], d)
+    else:
+        option1 = levenshtein_distance(a[1:], b[1:], d) + 1
+
+    # Strategy 2: Insert b[0] as the first character of a
+    option2 = 1 + levenshtein_distance(a, b[1:], d)
+    
+    # Strategy 3: Delete the first character of a
+    option3 = 1 + levenshtein_distance(a[1:], b, d)
+
+    m = min(option1, option2, option3)
+    d[(a,b)] = m
+    return m
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,13 +136,13 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    distance = levenshtein_distance(message.get_text(), goal_text, {})
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
 
 
-def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
+def mutate_text(message, prob_ins=0.90, prob_del=0.05, prob_sub=0.90):
     """
     Given a Message and independent probabilities for each mutation type,
     return a length 1 tuple containing the mutated Message.
@@ -121,13 +156,16 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+        index = random.randint(0, len(message) - 1) # gets index somehwhere in message
+        letter = random.choice(VALID_CHARS) # gets a random letter from the list of valid characters
+        message.insert(index, letter) # inserts a letter 
+    if random.random() < prob_del:
+        index = random.randint(0, len(message) - 1) # gets index somehwhere in message
+        del message[index] # deletes a letter
+    if random.random < prob_sub: 
+        index = random.randint(0, len(message) - 1) # gets index somehwhere in message
+        letter = random.choice(VALID_CHARS) # gets a random letter from the list of valid characters
+        message[index] = letter # replaces a letter
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -216,3 +254,5 @@ if __name__ == "__main__":
 
     # Run evolutionary algorithm
     pop, log = evolve_string(goal)
+
+
