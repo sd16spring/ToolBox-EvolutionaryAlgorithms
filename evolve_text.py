@@ -95,6 +95,37 @@ class Message(list):
 # TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
 # HINT: Now would be a great time to implement memoization if you haven't
 
+def levenshtein_distance(a,b,d={}):
+    #base cases
+    if b=="":
+        return len(a)
+    elif a=="":
+        return len(b)
+
+    #check dictionaray
+    elif (a,b) in d:
+        return d[(a,b)]
+
+    #Option 1, first character is same
+    elif a[0]==b[0]:
+        option1 = levenshtein_distance(a[1:],b[1:],d)
+    else:
+        option1 = 1+levenshtein_distance(a[1:],b[1:],d)
+
+    #Option 2, insert character
+    option2 = 1+levenshtein_distance(a,b[1:],d)
+
+    #option 3, delete character
+    option3 = 1+levenshtein_distance(a[1:],b,d)
+
+    #find minimum distance
+    minimum = min(option1, option2, option3)
+
+    #add to dictionary
+    d[(a,b)] = minimum
+
+    return minimum
+
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
     Given a Message and a goal_text string, return the Levenshtein distance
@@ -121,8 +152,21 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        #Insertion-type mutation
+        randIndex = random.randint(0,len(message)-1)
+        message.insert(randIndex,random.choice(VALID_CHARS))
+
+    if random.random() < prob_ins:
+        # Deletion-type mutation
+        randIndex = random.randint(0,len(message)-1)
+        message.pop(randIndex)
+
+
+    if random.random() < prob_ins:
+        # Substitution-type mutation
+        randIndex = random.randint(0,len(message)-1)
+        message.pop(randIndex)
+        message.insert(randIndex,random.choice(VALID_CHARS))
 
     # TODO: Also implement deletion and substitution mutations
     # HINT: Message objects inherit from list, so they also inherit
@@ -202,7 +246,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
-        goal = "SKYNET IS NOW ONLINE"
+        goal = "CLAP YOUR HANDS"
     else:
         goal = " ".join(sys.argv[1:])
 
