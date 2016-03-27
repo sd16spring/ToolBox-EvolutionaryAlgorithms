@@ -156,7 +156,7 @@ def my_crossover_func(parent1, parent2):
     point2 = random.randint(0,len(parent2))
     new_p1 = parent1[:point1] + parent2[point1:point2] + parent1[point2:]
     new_p2 = parent2[:point1] + parent1[point1:point2] + parent2[point2:]
-    return (new_p1, new_p2)
+    return (Message(new_p1),Message( new_p2))
 
 
 
