@@ -174,8 +174,8 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     	sub_char = random.choice(VALID_CHARS)
     	message[sub_i] = sub_char
 
-    return (message, )   # Length 1 tuple, required by DEAP
-
+    return (Message(message), ) # Length 1 tuple, required by DEAP
+    
 def mate_text(parent1, parent2):
 	"""
 	Given two parent input strings, returns two child strings which are a 
