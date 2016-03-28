@@ -29,7 +29,7 @@ from deap import tools
 VALID_CHARS = string.ascii_uppercase + " "
 
 # Control whether all Messages are printed as they are evaluated
-VERBOSE = True
+VERBOSE = False
 
 
 #-----------------------------------------------------------------------------
@@ -94,6 +94,27 @@ class Message(list):
 
 # TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
 # HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(a,b,d):
+    """returns the levenshtein distance between two strings a and b. Memoized.
+    >>> levenshtein_distance('linnea', 'lauren', {})
+    4
+    """
+    if b=="":
+        return len(a)
+    elif a=="":
+        return len(b)
+    elif (a,b) in d:
+        return d[(a,b)]
+    elif a[0]==b[0]:
+        lev_skip_sub = levenshtein_distance(a[1:],b[1:],d)
+    else:
+        lev_skip_sub = 1+levenshtein_distance(a[1:],b[1:],d)
+    lev_insert = 1+levenshtein_distance(a,b[1:],d)
+    lev_delete = 1+levenshtein_distance(a[1:],b,d)
+    minLev = min(lev_skip_sub, lev_insert, lev_delete)
+    d[(a,b)] = minLev
+    return minLev
+
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -101,7 +122,7 @@ def evaluate_text(message, goal_text, verbose=VERBOSE):
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
-    distance = levenshtein_distance(message.get_text(), goal_text)
+    distance = levenshtein_distance(message.get_text(), goal_text, {})
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
     return (distance, )     # Length 1 tuple, required by DEAP
@@ -121,13 +142,16 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
     """
 
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+    	index = random.randint(0, len(message)-1)
+    	char = random.choice(VALID_CHARS)
+    	message.insert(index,char)
+    if random.random() < prob_del:
+    	index = random.randint(0, len(message)-1)
+    	message.pop(index)
+    if random.random() < prob_sub:
+    	index = random.randint(0, len(message)-1)
+    	char = random.choice(VALID_CHARS)
+    	message[index] = char
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -185,7 +209,7 @@ def evolve_string(text):
                                    toolbox,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
-                                   ngen=500,    # Num. of generations to run
+                                   ngen=800,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
@@ -202,7 +226,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
-        goal = "SKYNET IS NOW ONLINE"
+        #goal = "SKYNET IS NOW ONLINE"
+        goal = 'PROGRAM TEST THREE'
     else:
         goal = " ".join(sys.argv[1:])
 
