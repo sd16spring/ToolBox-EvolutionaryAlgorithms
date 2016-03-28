@@ -195,8 +195,8 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
-    #toolbox.register("mate", tools.cxTwoPoint)
-    toolbox.register("mate", my_crossover_func)
+    toolbox.register("mate", tools.cxTwoPoint)
+    #toolbox.register("mate", my_crossover_func)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
@@ -230,9 +230,9 @@ def evolve_string(text):
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
     pop, log = algorithms.eaSimple(pop,
                                    toolbox,
-                                   cxpb=0.2,    # Prob. of crossover (mating)
+                                   cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
-                                   ngen=600,    # Num. of generations to run
+                                   ngen=1000,    # Num. of generations to run
                                    stats=stats)
 
     return pop, log
@@ -263,4 +263,3 @@ if __name__ == "__main__":
 
     # Run evolutionary algorithm
     pop, log = evolve_string(goal)
-

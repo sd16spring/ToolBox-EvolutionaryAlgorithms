@@ -1,0 +1,15 @@
+I compared my mating method with the one built into DAEP. I was expecting it to take more generations to arrive at the
+correct string with distance = 0. After about 440ish generations using my crossover method, I arrived at the correct
+string (THIS IS MY CRAZY STRING). In contrast, when I re-enabled the built in DAEP mating function, at 440 generations
+the distance was consistently around 4. After 700 generations, the distance was around 2; I next tried 1000 generations
+and discovered that finally, it had reached a distance of one. At that point, I stopped testing. In short, to my great
+surprise, my double point crossover metehod resulted in a much faster result! I don't really have a good hypothesis as
+to why this is, I looked through a great deal of the output without finding a consistent pattern to explain it. Anyways,
+a neat discovery! I didn't include the data that this spit out because it isn't too interesting to read, it is
+*extremely* long and you can produce it yourself.
+
+I wrote everything for this project myself (obviously, not the starter code) except for the memoized levenshtein
+ distance, which I pulled from the net - there was something wrong with my memoized levenshtein distance originally, I
+ did a memoized fibonacci instead, and I didn't think I would get a lot of learning out of re-doing it/debugging it
+ compared to working on other toolboxes. The memoized levenshtein distance I used can be found here. Thanks!
+  https://programmingpraxis.com/2014/09/12/levenshtein-distance/
