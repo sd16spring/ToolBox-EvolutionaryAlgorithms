@@ -195,8 +195,8 @@ def get_toolbox(text):
 
     # Genetic operators
     toolbox.register("evaluate", evaluate_text, goal_text=text)
-    toolbox.register("mate", tools.cxTwoPoint)
-    #toolbox.register("mate", my_crossover_func)
+    #toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register("mate", my_crossover_func)
     toolbox.register("mutate", mutate_text)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
