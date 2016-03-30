@@ -1,4 +1,8 @@
 """
+Anna Buchele
+
+Evolutionary Algorithm Toolbox
+
 Evolutionary algorithm, attempts to evolve a given message string.
 
 Uses the DEAP (Distributed Evolutionary Algorithms in Python) framework,
@@ -92,8 +96,35 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+def levenshtein_distance(s1,s2):
+    #calculates the edit distance between two strings
+
+    # Controls whether edit distance will take into account how "far away" a letter
+    # is from another letter: 
+    # If True: A -> Z is a distance of 3, while A -> B is 1.
+    # If False: A -> Z is a distance of 1, as is A -> B.
+    ORDON = True
+
+    if not s1:
+        return len(s2)
+    if not s2:
+        return len(s1)
+    s1s = s1[1:]
+    s2s = s2[1:]
+    s10 = s1[0]
+    s20 = s2[0]
+    if s10 == s20:
+        return levenshtein_distance(s1s,s2s)
+    diffchar = (s10 != s20)
+    if ORDON:
+        orddist = abs((ord(s10)-65)-(ord(s20)-65))
+        ordlevdist = (orddist / 12.5) + diffchar
+    else:
+        ordlevdist = diffchar
+    lev1 = levenshtein_distance(s1s,s2) + 1
+    lev2 = levenshtein_distance(s1,s2s) + 1
+    lev3 = levenshtein_distance(s1s,s2s) + ordlevdist
+    return min(lev1,lev2,lev3)
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -119,15 +150,13 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
-
+    
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+        message.insert(random.randint(0,len(message)), random.choice(VALID_CHARS))
+    if random.random() < prob_del:
+        del message[random.randint(0,len(message)-1)]
+    if random.random() < prob_sub:
+        message[random.randint(0,len(message)-1)] = random.choice(VALID_CHARS)
 
     return (message, )   # Length 1 tuple, required by DEAP
 
@@ -197,9 +226,12 @@ def evolve_string(text):
 
 if __name__ == "__main__":
 
+    # Open Save file
+    saveresults = open('resultstrue2.txt', 'w')
+
     # Get goal message from command line (optional)
     import sys
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 0:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
         goal = "SKYNET IS NOW ONLINE"
@@ -216,3 +248,7 @@ if __name__ == "__main__":
 
     # Run evolutionary algorithm
     pop, log = evolve_string(goal)
+
+    # Save data to file, then close
+    saveresults.write(str(log))
+    saveresults.close()

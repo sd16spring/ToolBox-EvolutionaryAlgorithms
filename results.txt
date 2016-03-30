@@ -1,0 +1,100 @@
+Anna Buchele
+Toolbox: Evolutionary Algorithms
+
+
+For my experiment, I added to the levenshtein_distance function to make it account for distances between letters. I set it on a scale from 0-3, where 0 is the same letter and 3 is A -> Z. Each letter is 2/25 distance from the next or previous. I previously wrote it so that it simply added the letter distance to the levenshtein distance, but that didn't work well. I think a normalized 0-3 scale is better.
+
+Regardless of whether the distance between letters was being applied, the first instance of the correct goal word (I used "HELLO") occurred in the 12th generation. When the distance between letters was not being calculated, the average distance from the correct phrase started lower and existed below 0.5 earlier. This is to be expected, as taking into account the distance between letters was expected to increase the average levenshtein distance in each instance. However, other than slight differences (+/- 1 generation), they both seemed to give about the same results. 
+
+Below is a sample of my data from both sets. Only the first 40 generations are included because after that, there isn't much change. 
+
+Without accounting for distance between letters:
+
+gen	nevals	avg       	std      	min	max
+0  	300   	15.6867   	7.03007  	2  	29 
+1  	194   	9.98      	4.76581  	3  	27 
+2  	191   	6.46      	2.43209  	3  	15 
+3  	176   	4.85333   	0.889844 	2  	10 
+4  	186   	4.33      	0.712577 	2  	7  
+5  	178   	3.84      	0.643739 	2  	5  
+6  	176   	3.38333   	0.704549 	1  	5  
+7  	193   	2.88333   	0.665624 	1  	4  
+8  	171   	2.43      	0.715379 	1  	4  
+9  	199   	1.92667   	0.633474 	1  	4  
+10 	190   	1.52667   	0.537856 	1  	3  
+11 	180   	1.14      	0.383493 	1  	4  
+12 	186   	1.02333   	0.171626 	0  	2  
+13 	172   	1.01667   	0.172401 	0  	2  
+14 	186   	0.996667  	0.191456 	0  	2  
+15 	193   	0.973333  	0.243493 	0  	2  
+16 	182   	0.95      	0.327872 	0  	2  
+17 	178   	0.836667  	0.435877 	0  	2  
+18 	178   	0.563333  	0.515741 	0  	2  
+19 	186   	0.193333  	0.411447 	0  	2  
+20 	198   	0.0566667 	0.245198 	0  	2  
+21 	179   	0.0333333 	0.197203 	0  	2  
+22 	166   	0.0233333 	0.15096  	0  	1  
+23 	190   	0.03      	0.170587 	0  	1  
+24 	173   	0.02      	0.14     	0  	1  
+25 	201   	0.0366667 	0.204912 	0  	2  
+26 	171   	0.0166667 	0.151841 	0  	2  
+27 	185   	0.05      	0.246644 	0  	2  
+28 	175   	0.0433333 	0.203606 	0  	1  
+29 	182   	0.02      	0.16207  	0  	2  
+30 	180   	0.0333333 	0.179505 	0  	1  
+31 	162   	0.0333333 	0.179505 	0  	1  
+32 	178   	0.02      	0.14     	0  	1  
+33 	173   	0.03      	0.189121 	0  	2  
+34 	194   	0.03      	0.170587 	0  	1  
+35 	190   	0.04      	0.22745  	0  	2  
+36 	184   	0.0233333 	0.15096  	0  	1  
+37 	166   	0.0233333 	0.15096  	0  	1  
+38 	181   	0.0366667 	0.204912 	0  	2  
+39 	178   	0.0233333 	0.171626 	0  	2  
+40 	175   	0.0166667 	0.128019 	0  	1  
+
+With accounting for distance between letters:
+
+gen	nevals	avg       	std      	min 	max  
+0  	300   	16.6852   	6.70496  	3.44	29.8 
+1  	194   	11.2684   	4.44317  	3.08	27.56
+2  	191   	8.06787   	2.3173   	3.8 	15.88
+3  	176   	6.40707   	1.12643  	3.24	11.88
+4  	186   	5.62627   	1.03029  	2   	8.44 
+5  	178   	4.94053   	0.911634 	1   	7.12 
+6  	176   	4.28627   	0.964488 	1   	6.8  
+7  	193   	3.60013   	0.957399 	1   	6.8  
+8  	171   	2.85867   	0.939931 	1   	6.08 
+9  	199   	2.12107   	0.89776  	1   	5.12 
+10 	190   	1.45533   	0.582642 	1   	3.24 
+11 	180   	1.12307   	0.36973  	1   	3.8  
+12 	186   	1.03267   	0.247127 	0   	3    
+13 	172   	1.0252    	0.217892 	0   	3    
+14 	186   	1.00667   	0.227493 	0   	3    
+15 	193   	1.002     	0.266356 	0   	3    
+16 	182   	1.0052    	0.293593 	0   	2.72 
+17 	178   	0.959067  	0.340171 	0   	2.72 
+18 	178   	0.886     	0.405023 	0   	2.24 
+19 	186   	0.707067  	0.514254 	0   	3    
+20 	198   	0.4184    	0.569241 	0   	2.96 
+21 	179   	0.102     	0.356728 	0   	2.4  
+22 	166   	0.0272    	0.183699 	0   	2    
+23 	190   	0.0349333 	0.206755 	0   	2    
+24 	173   	0.0249333 	0.18261  	0   	2    
+25 	201   	0.0398667 	0.22678  	0   	2.16 
+26 	171   	0.0190667 	0.180648 	0   	2.56 
+27 	185   	0.0578667 	0.296523 	0   	2.88 
+28 	175   	0.0476    	0.228294 	0   	1.72 
+29 	182   	0.0254667 	0.214282 	0   	2.64 
+30 	180   	0.0390667 	0.21849  	0   	2    
+31 	162   	0.0413333 	0.231973 	0   	1.96 
+32 	178   	0.0248    	0.178448 	0   	1.72 
+33 	173   	0.0326667 	0.205042 	0   	2    
+34 	194   	0.0388    	0.231179 	0   	2    
+35 	190   	0.0496    	0.289816 	0   	2.56 
+36 	184   	0.0249333 	0.163339 	0   	1.48 
+37 	166   	0.0254667 	0.168276 	0   	1.64 
+38 	181   	0.0421333 	0.2447   	0   	2.48 
+39 	178   	0.0298667 	0.220409 	0   	2    
+40 	175   	0.0233333 	0.190058 	0   	2  
+
