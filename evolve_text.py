@@ -95,12 +95,32 @@ class Message(list):
 # TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
 # HINT: Now would be a great time to implement memoization if you haven't
 
+def levenshtein_distance(message, goal_text, dicts = {}):
+    """Computes the levenshtein distance between two input strings by memoizing with d, an empty dictionary"""
+    if (message, goal_text) in dicts.keys():
+        return dicts[message, goal_text]
+    else: 
+        if len(message)== 0:
+            return len(goal_text)
+        elif len(goal_text) ==0:
+            return len(message)
+        elif message[0] == goal_text[0]:
+            option1 = levenshtein_distance(message[1:], goal_text[1:], dicts)
+        else:
+            option1 = 1 + levenshtein_distance(message[1:], goal_text[1:], dicts)
+        option2 = 1 + levenshtein_distance(message[1:], goal_text, dicts)
+        option3 = 1 + levenshtein_distance(message, goal_text[1:], dicts)
+    minimum = min(option1, option2, option3)
+    dicts[message, goal_text] = minimum
+    return minimum
+
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
     Given a Message and a goal_text string, return the Levenshtein distance
     between the Message and the goal_text as a length 1 tuple.
     If verbose is True, print each Message as it is evaluated.
     """
+    dicts = {}
     distance = levenshtein_distance(message.get_text(), goal_text)
     if verbose:
         print "{msg:60}\t[Distance: {dst}]".format(msg=message, dst=distance)
@@ -119,18 +139,15 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
-
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
-
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
+        message.append(random.choice(VALID_CHARS))
+    if random.random() < prob_del:
+        message = message[0:]
+    if random.random() < prob_sub:
+        i = random.randint(0, len(message))
+        message[i] = random.choice(VALID_CHARS)
 
     return (message, )   # Length 1 tuple, required by DEAP
-
 
 #-----------------------------------------------------------------------------
 # DEAP Toolbox and Algorithm setup
@@ -181,8 +198,10 @@ def evolve_string(text):
 
     # Run simple EA
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
-    pop, log = algorithms.eaSimple(pop,
+    pop, log = algorithms.eaMuPlusLambda(pop,
                                    toolbox,
+                                   mu = 5,
+                                   lambda_ = 5,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
