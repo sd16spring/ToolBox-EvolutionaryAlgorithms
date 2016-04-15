@@ -1,0 +1,26 @@
+###Experimentation Results for ToolBox-EvolutionaryAlgorithms
+###Claire Kincaid
+###April 14, 2016
+
+I chose to change the DEAP evolutionary algorithm the code uses from eaSimple to eaMuPlusLambda to examine how it affects the run time and the generation results of the evolutionary algorithm software.
+
+RESULTS
+- it still takes forever to run
+- after lots of debugging I discovered that the levenshtein distance function was just recursive forever so it never stopped running, invalidating the change made by the use of eaMuPlusLambda
+- now it's running great
+- it starts running very quickly and slows down after a bit of time
+- lets see how many generations it takes, I think we're on 50 right now
+- btw the message code here is "THIS IS MY EXPERIMENT"
+- mu is set to 5
+- lambda_ is set to 5
+- its getting closish
+- levenshtein distance started at around 22 average now its down to 17
+- this still takes forever but is much more efficient than eaSimple for long message codes
+- this is taking forever--- I'm going to do a smaller message and that should take less time (?)
+- smaller message =  EVOLUTION
+- already going much faster
+- it's slowed down but has an average levenshtein of about 12
+- bogged down around randint, had to debug
+- rerunning at message = EVOLUTION
+- its pretty efficient but still running fairly slow-- I think it's that my lambda_ is too high, I should add fewer new instances each time and keep more of the optemized ones
+- took about 200 generations to get it, but I didn't have them officially count it so I don't know for sure
