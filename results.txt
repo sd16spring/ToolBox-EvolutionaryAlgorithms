@@ -1,0 +1,3 @@
+This toolbox has provided me with a basic understanding of what are and how to use genetic algorithms. Even though the cost function contains the target string, we can still learn how cost functions work.
+
+In terms of the mutation, given a small number of generations, it is very difficult to evolve past a certain number of letters. For example, let's look at at 26 character string, the alphabet, "ABCDEFGHIJKLMNOPQRSTUVWXYZ". If we run for 500 generations, we can only get a levenshtein distance of 2-5. If we run 1000 generations, we can get a levenshtein distance of 1-2.  If we run 1500 generations, we almost always a levenshtein distance of 0, a the exact copy of the targe string.
