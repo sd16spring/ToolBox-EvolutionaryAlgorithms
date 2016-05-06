@@ -1,0 +1,2 @@
+Experiment: increase the probability of substitution. This is where it seems to get stuck towards the end. It seems to help
+If it wasnt so late, I would look into changing the probabilities dynamically.
