@@ -1,0 +1,7 @@
+The first time I ran the evolutionary algorithm, I was not getting a result
+with "HELLO WORLD" as the input text in 500 generations. The levenshtein distance
+never went below 2.
+
+However, when I switched to a mu plus lambda simulation and set mu (the number that
+suurvive) to 100 and lambda (the number of offspring) to 200, I reached the goal
+message in 176 generations. This is significantly marked improvement. 

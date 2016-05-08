@@ -205,8 +205,10 @@ def evolve_string(text):
 
     # Run simple EA
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
-    pop, log = algorithms.eaSimple(pop,
+    pop, log = algorithms.eaMuPlusLambda(pop,
                                    toolbox,
+                                   mu=100,
+                                   lambda_=200,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
