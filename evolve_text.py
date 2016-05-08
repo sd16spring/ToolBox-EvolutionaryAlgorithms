@@ -29,7 +29,7 @@ from deap import tools
 VALID_CHARS = string.ascii_uppercase + " "
 
 # Control whether all Messages are printed as they are evaluated
-VERBOSE = True
+VERBOSE = False
 
 
 #-----------------------------------------------------------------------------
@@ -92,8 +92,29 @@ class Message(list):
 # Genetic operators
 #-----------------------------------------------------------------------------
 
-# TODO: Implement levenshtein_distance function (see Day 9 in-class exercises)
-# HINT: Now would be a great time to implement memoization if you haven't
+
+def levenshtein_distance(a, b, lev_memo=None):
+    """returns the levenshtein distance between two strings a and b
+    """
+    if lev_memo == None:
+        lev_memo = {}
+    if (a,b) in lev_memo.keys():
+        return lev_memo[a,b]
+    else:
+        if len(a)==0:
+            return len(b)
+        elif len(b)==0:
+            return len(a)
+        elif a[0] == b[0]:
+            option1 = levenshtein_distance(a[1:],b[1:],lev_memo)
+        else:
+            option1 = 1 + levenshtein_distance(a[1:],b[1:],lev_memo)
+        option2 = 1 + levenshtein_distance(a[1:],b,lev_memo)
+        option3 = 1 + levenshtein_distance(a,b[1:],lev_memo)
+
+    minimum = min(option1,option2,option3)
+    lev_memo[a,b] = minimum
+    return minimum
 
 def evaluate_text(message, goal_text, verbose=VERBOSE):
     """
@@ -119,17 +140,20 @@ def mutate_text(message, prob_ins=0.05, prob_del=0.05, prob_sub=0.05):
         Substitution:   Replace one character of the Message with a random
                         (legal) character
     """
-
+    #Insertion
     if random.random() < prob_ins:
-        # TODO: Implement insertion-type mutation
-        pass
+        idx = random.randint(0, len(message)-1)
+        message = message[:idx]+[random.choice(VALID_CHARS)]+message[idx+1:]
+    #deletion
+    if random.random() < prob_del:
+        idx = random.randint(0,len(message)-1)
+        message = message[:idx]+message[idx+1:]
+    #substitution
+    if random.random() < prob_sub:
+        idx = random.randint(0,len(message)-1)
+        message[idx] = random.choice(VALID_CHARS)
 
-    # TODO: Also implement deletion and substitution mutations
-    # HINT: Message objects inherit from list, so they also inherit
-    #       useful list methods
-    # HINT: You probably want to use the VALID_CHARS global variable
-
-    return (message, )   # Length 1 tuple, required by DEAP
+    return (Message(message), )   # Length 1 tuple, required by DEAP
 
 
 #-----------------------------------------------------------------------------
@@ -181,8 +205,10 @@ def evolve_string(text):
 
     # Run simple EA
     # (See: http://deap.gel.ulaval.ca/doc/dev/api/algo.html for details)
-    pop, log = algorithms.eaSimple(pop,
+    pop, log = algorithms.eaMuPlusLambda(pop,
                                    toolbox,
+                                   mu=100,
+                                   lambda_=200,
                                    cxpb=0.5,    # Prob. of crossover (mating)
                                    mutpb=0.2,   # Probability of mutation
                                    ngen=500,    # Num. of generations to run
@@ -202,7 +228,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         # Default goal of the evolutionary algorithm if not specified.
         # Pretty much the opposite of http://xkcd.com/534
-        goal = "SKYNET IS NOW ONLINE"
+        goal = "DOES THIS PROGRAM WORK YET I GUESS SO"
     else:
         goal = " ".join(sys.argv[1:])
 
